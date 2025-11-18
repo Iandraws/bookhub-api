@@ -22,6 +22,8 @@ export interface BookUpdateInput {
 export interface BookFilter {
   title?: string;
   authorId?: string;
+  authorName?: string;
+  description?: string;
 }
 
 export interface BookSort {

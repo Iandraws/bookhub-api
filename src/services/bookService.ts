@@ -1,7 +1,7 @@
 import { docClient } from "../db/dynamoClient";
 import { v4 as uuid } from "uuid";
 import { ScanCommand, GetCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
-import { Book, BookFilter, BookSort, BooksConnection, BookInput, BookUpdateInput, ScanParams } from '../types';
+import { Book, BookFilter, BookSort, BooksConnection, BookInput, BookUpdateInput, ScanParams, Author } from '../types';
 
 const BOOKS_TABLE = process.env.BOOKS_TABLE || "Books";
 
@@ -21,9 +21,29 @@ export const listBooks = async (filter?: BookFilter, sort?: BookSort, limit?: nu
       );
     }
     
+    if (filter?.description) {
+      items = items.filter((item: Book) => 
+        item.description && item.description.toLowerCase().includes(filter.description!.toLowerCase())
+      );
+    }
+    
     if (filter?.authorId) {
       items = items.filter((item: Book) => 
         item.authorIds && item.authorIds.includes(filter.authorId!)
+      );
+    }
+    
+    if (filter?.authorName) {
+      const AUTHORS_TABLE = process.env.AUTHORS_TABLE || 'Authors';
+      const authorData = await docClient.send(new ScanCommand({ TableName: AUTHORS_TABLE }));
+      const authors: Author[] = (authorData.Items as Author[]) || [];
+      
+      const matchingAuthorIds = authors
+        .filter(author => author.name.toLowerCase().includes(filter.authorName!.toLowerCase()))
+        .map(author => author.id);
+      
+      items = items.filter((item: Book) => 
+        item.authorIds && item.authorIds.some(authorId => matchingAuthorIds.includes(authorId))
       );
     }
     

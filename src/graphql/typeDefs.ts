@@ -33,6 +33,8 @@ export const typeDefs = `
   input BookFilterInput {
     title: String
     authorId: ID
+    authorName: String
+    description: String
   }
 
   input BookSortInput {
