@@ -8,6 +8,48 @@ GraphQL API for managing books and authors. Built with TypeScript and deployed o
 https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql
 ```
 
+## Authentication
+
+All requests to the API require an **API Key** passed in the `x-api-key` header.
+
+### Setting up API Key
+
+1. Create a `.env` file in the project root:
+```bash
+API_KEY=your-secure-api-key-here
+NODE_ENV=development
+```
+
+2. The API key must be provided in all requests:
+```bash
+curl -X POST https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your-api-key" \
+  -d '{"query":"{ health }"}'
+```
+
+3. Requests without a valid API key will return:
+```json
+{
+  "errors": [
+    {
+      "message": "Unauthorized: Missing or invalid API key. Please provide x-api-key header.",
+      "extensions": { "code": "UNAUTHORIZED" }
+    }
+  ]
+}
+```
+
+### Environment Variables
+
+Create a `.env` file with:
+```
+API_KEY=sk_live_bookhub_api_1234567890abcdef
+NODE_ENV=development
+```
+
+**Note:** The `.env` file is not committed to Git (added in `.gitignore`) for security.
+
 ## Overview
 
 BookHub provides a GraphQL interface for books and authors management with filtering, sorting, pagination, and search capabilities.
@@ -260,6 +302,7 @@ mutation {
 ```bash
 curl -X POST https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql \
   -H "Content-Type: application/json" \
+  -H "x-api-key: sk_live_bookhub_api_1234567890abcdef" \
   -d '{"query":"{ health }"}'
 ```
 
@@ -269,7 +312,11 @@ curl -X POST https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql \
 $endpoint = "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql"
 $query = '{ listBooks(limit: 10) { items { id title } total } }'
 $body = @{"query" = $query} | ConvertTo-Json
-Invoke-RestMethod -Uri $endpoint -Method Post -Headers @{"Content-Type"="application/json"} -Body $body
+$headers = @{
+  "Content-Type" = "application/json"
+  "x-api-key" = "sk_live_bookhub_api_1234567890abcdef"
+}
+Invoke-RestMethod -Uri $endpoint -Method Post -Headers $headers -Body $body
 ```
 
 ### Postman
@@ -277,6 +324,7 @@ Invoke-RestMethod -Uri $endpoint -Method Post -Headers @{"Content-Type"="applica
 Import the included Postman collection:
 - File: `BookHub-API.postman_collection.json`
 - Contains 25+ pre-configured requests
+- Configure `api_key` variable to match your `.env` API_KEY value
 
 ## Project Structure
 
@@ -421,9 +469,16 @@ All errors return in standard GraphQL format:
 ## Environment Variables
 
 ```
+API_KEY=sk_live_bookhub_api_1234567890abcdef
 BOOKS_TABLE=bookhub-api-books-dev
 AUTHORS_TABLE=bookhub-api-authors-dev
+NODE_ENV=development
 ```
+
+**Security Note:** 
+- The `API_KEY` is stored in `.env` file which is excluded from Git
+- Each deployment environment should have its own unique API key
+- Never commit `.env` files to version control
 
 ## Build
 
