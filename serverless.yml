@@ -1,0 +1,67 @@
+service: bookhub-api
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-central-1
+  environment:
+    BOOKS_TABLE: ${self:service}-books-${sls:stage}
+    AUTHORS_TABLE: ${self:service}-authors-${sls:stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-*-${sls:stage}"
+
+functions:
+  graphql:
+    handler: src/handlers/graphqlHandler.handler
+    events:
+      - httpApi:
+          path: /graphql
+          method: ANY
+
+resources:
+  Resources:
+    BooksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-books-${sls:stage}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    AuthorsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-authors-${sls:stage}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+plugins:
+  - serverless-offline
+
+build:
+  esbuild: true
+  bundle: true
+  minify: false
+  sourcemap: true
+  target: node20
+  platform: node
+  format: cjs
