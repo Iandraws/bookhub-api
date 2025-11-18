@@ -3,7 +3,7 @@ export const typeDefs = `
     id: ID!
     title: String!
     description: String
-    author: Author!
+    author: Author
     createdAt: String
     updatedAt: String
   }
