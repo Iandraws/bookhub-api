@@ -22,12 +22,12 @@ provider:
           Resource: "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-*-${sls:stage}"
 
 functions:
-  graphql:
+  bookhub-api:
     handler: src/handlers/graphqlHandler.handler
     events:
       - httpApi:
           path: /graphql
-          method: ANY
+          method: POST
 
 resources:
   Resources:
