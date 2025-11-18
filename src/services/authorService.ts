@@ -28,8 +28,13 @@ export const listAuthors = async (filter?: any, limit?: number, offset?: number)
 };
 
 export const getAuthor = async (id: string) => {
-  const data = await docClient.send(new GetCommand({ TableName: AUTHORS_TABLE, Key: { id } }));
-  return data.Item;
+  try {
+    const data = await docClient.send(new GetCommand({ TableName: AUTHORS_TABLE, Key: { id } }));
+    return data.Item || null;
+  } catch (error) {
+    console.error('Error getting author:', error);
+    return null;
+  }
 };
 
 export const createAuthor = async (name: string) => {

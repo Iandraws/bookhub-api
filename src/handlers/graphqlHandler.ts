@@ -69,8 +69,14 @@ const resolvers = {
   
   Book: {
     author: async (book: any) => {
-      if (!book.authorId) return null;
-      return await authorService.getAuthor(book.authorId);
+      try {
+        if (!book.authorId) return null;
+        const author = await authorService.getAuthor(book.authorId);
+        return author || null;
+      } catch (error) {
+        console.error('Error fetching author:', error);
+        return null;
+      }
     },
   },
 };
