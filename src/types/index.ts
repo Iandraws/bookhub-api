@@ -1,4 +1,3 @@
-// Book types
 export interface Book {
   id: string;
   title: string;
@@ -35,7 +34,6 @@ export interface BooksConnection {
   total: number;
 }
 
-// Author types
 export interface Author {
   id: string;
   name: string;
@@ -59,9 +57,7 @@ export interface AuthorsConnection {
   total: number;
 }
 
-// GraphQL Context and Arguments
 export interface GraphQLContext {
-  // Add context properties if needed
 }
 
 export interface ListBooksArgs {
@@ -119,7 +115,6 @@ export interface DeleteAuthorArgs {
   id: string;
 }
 
-// HTTP Event types for Lambda
 export interface LambdaEvent {
   rawPath?: string;
   path?: string;
@@ -134,10 +129,8 @@ export interface LambdaEvent {
 }
 
 export interface LambdaContext {
-  // Add Lambda context properties if needed
 }
 
-// DynamoDB scan parameters
 export interface ScanParams {
   TableName: string;
 }

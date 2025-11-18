@@ -65,6 +65,15 @@ export const getBook = async (id: string): Promise<Book | null> => {
 };
 
 export const createBook = async (title: string, description: string, authorIds: string[]): Promise<Book> => {
+  const existingBooks = await searchBooks(title);
+  const titleExists = existingBooks.some((book: Book) => 
+    book.title.toLowerCase() === title.toLowerCase()
+  );
+  
+  if (titleExists) {
+    throw new Error(`A book with the title "${title}" already exists`);
+  }
+
   const id = uuid();
   const now = getCurrentTimestamp();
   const item: Book = { id, title, description, authorIds, createdAt: now, updatedAt: now };
@@ -73,8 +82,38 @@ export const createBook = async (title: string, description: string, authorIds: 
 };
 
 export const createBooks = async (books: BookInput[]): Promise<Book[]> => {
+  const titles = books.map(book => book.title.toLowerCase());
+  const duplicatesInBatch = titles.filter((title, index) => titles.indexOf(title) !== index);
+  
+  if (duplicatesInBatch.length > 0) {
+    throw new Error(`Duplicate titles in batch: ${duplicatesInBatch.join(', ')}`);
+  }
+  
+  for (const book of books) {
+    const existingBooks = await searchBooks(book.title);
+    const titleExists = existingBooks.some((existing: Book) => 
+      existing.title.toLowerCase() === book.title.toLowerCase()
+    );
+    
+    if (titleExists) {
+      throw new Error(`A book with the title "${book.title}" already exists`);
+    }
+  }
+  
   const createdBooks = await Promise.all(
-    books.map(book => createBook(book.title, book.description || '', book.authorIds))
+    books.map(book => {
+      const id = uuid();
+      const now = getCurrentTimestamp();
+      const item: Book = { 
+        id, 
+        title: book.title, 
+        description: book.description || '', 
+        authorIds: book.authorIds, 
+        createdAt: now, 
+        updatedAt: now 
+      };
+      return docClient.send(new PutCommand({ TableName: BOOKS_TABLE, Item: item })).then(() => item);
+    })
   );
   return createdBooks;
 };
@@ -82,6 +121,17 @@ export const createBooks = async (books: BookInput[]): Promise<Book[]> => {
 export const updateBook = async (id: string, input: BookUpdateInput): Promise<Book | null> => {
   const existingBook = await getBook(id);
   if (!existingBook) return null;
+  
+  if (input.title && input.title.toLowerCase() !== existingBook.title.toLowerCase()) {
+    const existingBooks = await searchBooks(input.title);
+    const titleExists = existingBooks.some((book: Book) => 
+      book.title.toLowerCase() === input.title!.toLowerCase() && book.id !== id
+    );
+    
+    if (titleExists) {
+      throw new Error(`A book with the title "${input.title}" already exists`);
+    }
+  }
   
   const now = getCurrentTimestamp();
   const updatedItem: Book = {
