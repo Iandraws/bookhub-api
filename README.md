@@ -492,7 +492,3 @@ npx tsc --noEmit
 - Timestamps use ISO 8601 format
 - All operations are asynchronous
 - Database connections managed automatically
-
-## License
-
-MIT
