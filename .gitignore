@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build and dist
+dist/
+build/
+.build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Serverless
+.serverless/
+.serverless_plugins/
+.env.dev
+.env.prod
+
+# AWS
+.aws/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Optional
+*.bak
+*.tmp
+
+# DynamoDB Local
+.dynamodb/
+local_dynamodb_data/
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+.cache/
+temp/
+tmp/
