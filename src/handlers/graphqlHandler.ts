@@ -5,12 +5,10 @@ import * as authorService from '../services/authorService';
 import { docClient } from '../db/dynamoClient';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 
-// Valid API keys
-const VALID_API_KEYS = ['bookhub-demo-key-12345', 'bookhub-prod-key-67890'];
-
 const validateApiKey = (headers: any): boolean => {
   const apiKey = headers['x-api-key'] || headers['X-Api-Key'];
-  return VALID_API_KEYS.includes(apiKey);
+  const validApiKey = process.env.API_KEY;
+  return apiKey === validApiKey;
 };
 
 const resolvers = {

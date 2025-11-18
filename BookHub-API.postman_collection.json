@@ -696,9 +696,9 @@
     },
     {
       "key": "api_key",
-      "value": "bookhub-demo-key-12345",
+      "value": "sk_live_bookhub_api_1234567890abcdef",
       "type": "string",
-      "description": "API Key for authentication - use 'bookhub-demo-key-12345' or 'bookhub-prod-key-67890'"
+      "description": "API Key for authentication - must match the API_KEY value in .env file"
     }
   ]
 }
