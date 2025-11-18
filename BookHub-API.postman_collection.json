@@ -1,0 +1,640 @@
+{
+  "info": {
+    "name": "BookHub API - Advanced GraphQL",
+    "description": "Production-ready GraphQL API with filtering, sorting, pagination, search, and batch operations on AWS Lambda with DynamoDB",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  health\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Health check endpoint to verify API is running"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Query - Books",
+      "item": [
+        {
+          "name": "List All Books with Pagination",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  listBooks(limit: 10, offset: 0) {\n    items {\n      id\n      title\n      description\n      createdAt\n      updatedAt\n      author {\n        id\n        name\n      }\n    }\n    total\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Fetches all books with pagination support. Includes total count for UI pagination controls"
+          }
+        },
+        {
+          "name": "List Books - With Filtering",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  listBooks(filter: { title: \"Great\" }, limit: 10, offset: 0) {\n    items {\n      id\n      title\n      description\n      author {\n        name\n      }\n    }\n    total\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Filter books by title using case-insensitive search"
+          }
+        },
+        {
+          "name": "List Books - By Author",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  listBooks(filter: { authorId: \"author-1\" }, limit: 10) {\n    items {\n      id\n      title\n      description\n    }\n    total\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Filter books by a specific author ID"
+          }
+        },
+        {
+          "name": "List Books - With Sorting",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  listBooks(sort: { field: \"title\", direction: ASC }, limit: 10) {\n    items {\n      id\n      title\n      description\n    }\n    total\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Sort books by field (title, createdAt) in ascending or descending order"
+          }
+        },
+        {
+          "name": "Search Books",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  searchBooks(query: \"mockingbird\") {\n    id\n    title\n    description\n    author {\n      id\n      name\n    }\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Full-text search across book titles and descriptions"
+          }
+        },
+        {
+          "name": "Get Single Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  getBook(id: \"book-id-here\") {\n    id\n    title\n    description\n    createdAt\n    updatedAt\n    author {\n      id\n      name\n    }\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Fetch a specific book by ID with all details"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Query - Authors",
+      "item": [
+        {
+          "name": "List All Authors",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  listAuthors(limit: 10, offset: 0) {\n    items {\n      id\n      name\n      createdAt\n    }\n    total\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Fetch all authors with pagination"
+          }
+        },
+        {
+          "name": "Search Authors by Name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  listAuthors(filter: { name: \"King\" }, limit: 10) {\n    items {\n      id\n      name\n    }\n    total\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Filter authors by name with case-insensitive search"
+          }
+        },
+        {
+          "name": "Get Single Author",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  getAuthor(id: \"author-id-here\") {\n    id\n    name\n    createdAt\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Fetch a specific author by ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutation - Create",
+      "item": [
+        {
+          "name": "Create Single Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  createBook(input: {\n    title: \"The Hobbit\"\n    description: \"An adventure fantasy novel about Bilbo Baggins\"\n    authorId: \"author-1\"\n  }) {\n    id\n    title\n    description\n    createdAt\n    updatedAt\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Create a single book with auto-generated UUID and timestamps"
+          }
+        },
+        {
+          "name": "Create Multiple Books (Batch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  createBooks(inputs: [\n    {\n      title: \"Pride and Prejudice\"\n      description: \"A romantic novel by Jane Austen\"\n      authorId: \"author-2\"\n    }\n    {\n      title: \"Jane Eyre\"\n      description: \"A gothic romance novel\"\n      authorId: \"author-3\"\n    }\n    {\n      title: \"Wuthering Heights\"\n      description: \"A dark romantic novel\"\n      authorId: \"author-4\"\n    }\n  ]) {\n    id\n    title\n    description\n    createdAt\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Batch create multiple books in a single request using Promise.all for parallel execution"
+          }
+        },
+        {
+          "name": "Create Author",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  createAuthor(input: {\n    name: \"Stephen King\"\n  }) {\n    id\n    name\n    createdAt\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Create a new author with auto-generated UUID and timestamp"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutation - Update",
+      "item": [
+        {
+          "name": "Update Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  updateBook(id: \"book-id-here\", input: {\n    title: \"Updated Title\"\n    description: \"Updated description\"\n  }) {\n    id\n    title\n    description\n    updatedAt\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Update an existing book with partial updates supported"
+          }
+        },
+        {
+          "name": "Update Author",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  updateAuthor(id: \"author-id-here\", input: {\n    name: \"Updated Author Name\"\n  }) {\n    id\n    name\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Update an author's information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutation - Delete",
+      "item": [
+        {
+          "name": "Delete Single Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  deleteBook(id: \"book-id-here\")\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Delete a single book by ID"
+          }
+        },
+        {
+          "name": "Delete All Books (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  deleteAllBooks\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Delete all books from the database (admin operation)"
+          }
+        },
+        {
+          "name": "Delete Author",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  deleteAuthor(id: \"author-id-here\")\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Delete an author by ID"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "endpoint",
+      "value": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+      "type": "string"
+    }
+  ]
+}
