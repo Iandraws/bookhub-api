@@ -1,20 +1,21 @@
 import { docClient } from "../db/dynamoClient";
 import { v4 as uuid } from "uuid";
 import { ScanCommand, GetCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { Author, AuthorFilter, AuthorsConnection, AuthorUpdateInput } from '../types';
 
 const AUTHORS_TABLE = process.env.AUTHORS_TABLE || "Authors";
 
 const getCurrentTimestamp = () => new Date().toISOString();
 
-export const listAuthors = async (filter?: any, limit?: number, offset?: number) => {
+export const listAuthors = async (filter?: AuthorFilter, limit?: number, offset?: number): Promise<AuthorsConnection> => {
   try {
     const data = await docClient.send(new ScanCommand({ TableName: AUTHORS_TABLE }));
     
-    let items = data.Items || [];
+    let items: Author[] = (data.Items as Author[]) || [];
     
     if (filter?.name) {
-      items = items.filter((item: any) =>
-        item.name.toLowerCase().includes(filter.name.toLowerCase())
+      items = items.filter((item: Author) =>
+        item.name.toLowerCase().includes(filter.name!.toLowerCase())
       );
     }
     
@@ -37,29 +38,29 @@ export const listAuthors = async (filter?: any, limit?: number, offset?: number)
   }
 };
 
-export const getAuthor = async (id: string) => {
+export const getAuthor = async (id: string): Promise<Author | null> => {
   try {
     const data = await docClient.send(new GetCommand({ TableName: AUTHORS_TABLE, Key: { id } }));
-    return data.Item || null;
+    return (data.Item as Author) || null;
   } catch (error) {
     console.error('Error getting author:', error);
     return null;
   }
 };
 
-export const createAuthor = async (name: string) => {
+export const createAuthor = async (name: string): Promise<Author> => {
   const id = uuid();
   const now = getCurrentTimestamp();
-  const item = { id, name, createdAt: now };
+  const item: Author = { id, name, createdAt: now };
   await docClient.send(new PutCommand({ TableName: AUTHORS_TABLE, Item: item }));
   return item;
 };
 
-export const updateAuthor = async (id: string, input: { name: string }) => {
+export const updateAuthor = async (id: string, input: AuthorUpdateInput): Promise<Author | null> => {
   const existingAuthor = await getAuthor(id);
   if (!existingAuthor) return null;
   
-  const updatedItem = {
+  const updatedItem: Author = {
     ...existingAuthor,
     ...input
   };
@@ -68,7 +69,7 @@ export const updateAuthor = async (id: string, input: { name: string }) => {
   return updatedItem;
 };
 
-export const deleteAuthor = async (id: string) => {
+export const deleteAuthor = async (id: string): Promise<boolean> => {
   await docClient.send(new DeleteCommand({ TableName: AUTHORS_TABLE, Key: { id } }));
   return true;
 };

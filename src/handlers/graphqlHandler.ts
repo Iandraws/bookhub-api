@@ -4,8 +4,14 @@ import * as bookService from '../services/bookService';
 import * as authorService from '../services/authorService';
 import { docClient } from '../db/dynamoClient';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  Book, Author, GraphQLContext, LambdaEvent, LambdaContext, ScanParams,
+  ListBooksArgs, GetBookArgs, ListAuthorsArgs, GetAuthorArgs, SearchBooksArgs,
+  CreateBookArgs, CreateBooksArgs, UpdateBookArgs, DeleteBookArgs,
+  CreateAuthorArgs, UpdateAuthorArgs, DeleteAuthorArgs
+} from '../types';
 
-const validateApiKey = (headers: any): boolean => {
+const validateApiKey = (headers: Record<string, string>): boolean => {
   const apiKey = headers['x-api-key'] || headers['X-Api-Key'];
   const validApiKey = process.env.API_KEY;
   return apiKey === validApiKey;
@@ -15,46 +21,41 @@ const resolvers = {
   Query: {
     health: () => "OK",
     
-    listBooks: async (_: any, args: { filter?: any; sort?: any; limit?: number; offset?: number }) => {
+    listBooks: async (_: unknown, args: ListBooksArgs) => {
       return await bookService.listBooks(args.filter, args.sort, args.limit, args.offset);
     },
     
-    getBook: async (_: any, args: { id: string }) => {
+    getBook: async (_: unknown, args: GetBookArgs) => {
       return await bookService.getBook(args.id);
     },
     
-    listAuthors: async (_: any, args: { filter?: any; limit?: number; offset?: number }) => {
+    listAuthors: async (_: unknown, args: ListAuthorsArgs) => {
       return await authorService.listAuthors(args.filter, args.limit, args.offset);
     },
     
-    getAuthor: async (_: any, args: { id: string }) => {
+    getAuthor: async (_: unknown, args: GetAuthorArgs) => {
       return await authorService.getAuthor(args.id);
     },
     
-    searchBooks: async (_: any, args: { query: string }) => {
+    searchBooks: async (_: unknown, args: SearchBooksArgs) => {
       return await bookService.searchBooks(args.query);
     },
   },
   
   Mutation: {
-    createBook: async (_: any, args: { input: { title: string; description?: string; authorIds: string[] } }) => {
+    createBook: async (_: unknown, args: CreateBookArgs) => {
       return await bookService.createBook(args.input.title, args.input.description || "", args.input.authorIds);
     },
     
-    createBooks: async (_: any, args: { inputs: Array<{ title: string; description?: string; authorIds: string[] }> }) => {
-      const inputs = args.inputs.map(input => ({
-        title: input.title,
-        description: input.description || "",
-        authorIds: input.authorIds,
-      }));
-      return await bookService.createBooks(inputs);
+    createBooks: async (_: unknown, args: CreateBooksArgs) => {
+      return await bookService.createBooks(args.inputs);
     },
     
-    updateBook: async (_: any, args: { id: string; input: { title?: string; description?: string; authorIds?: string[] } }) => {
+    updateBook: async (_: unknown, args: UpdateBookArgs) => {
       return await bookService.updateBook(args.id, args.input);
     },
     
-    deleteBook: async (_: any, args: { id: string }) => {
+    deleteBook: async (_: unknown, args: DeleteBookArgs) => {
       return await bookService.deleteBook(args.id);
     },
     
@@ -62,27 +63,27 @@ const resolvers = {
       return await bookService.deleteAllBooks();
     },
     
-    createAuthor: async (_: any, args: { input: { name: string } }) => {
+    createAuthor: async (_: unknown, args: CreateAuthorArgs) => {
       return await authorService.createAuthor(args.input.name);
     },
     
-    updateAuthor: async (_: any, args: { id: string; input: { name: string } }) => {
+    updateAuthor: async (_: unknown, args: UpdateAuthorArgs) => {
       return await authorService.updateAuthor(args.id, args.input);
     },
     
-    deleteAuthor: async (_: any, args: { id: string }) => {
+    deleteAuthor: async (_: unknown, args: DeleteAuthorArgs) => {
       return await authorService.deleteAuthor(args.id);
     },
   },
   
   Book: {
-    authors: async (book: any) => {
+    authors: async (book: Book) => {
       try {
         if (!book.authorIds || book.authorIds.length === 0) return [];
         const authors = await Promise.all(
           book.authorIds.map((id: string) => authorService.getAuthor(id))
         );
-        return authors.filter((a: any) => a !== null);
+        return authors.filter((a: Author | null) => a !== null);
       } catch (error) {
         console.error('Error fetching authors:', error);
         return [];
@@ -91,13 +92,13 @@ const resolvers = {
   },
   
   Author: {
-    books: async (author: any) => {
+    books: async (author: Author) => {
       try {
         const BOOKS_TABLE = process.env.BOOKS_TABLE || 'bookhub-api-books-dev';
-        const scanParams: any = { TableName: BOOKS_TABLE };
+        const scanParams: ScanParams = { TableName: BOOKS_TABLE };
         const data = await docClient.send(new ScanCommand(scanParams));
-        const allBooks = data.Items || [];
-        return allBooks.filter((book: any) => 
+        const allBooks: Book[] = (data.Items as Book[]) || [];
+        return allBooks.filter((book: Book) => 
           book.authorIds && book.authorIds.includes(author.id)
         );
       } catch (error) {
@@ -111,7 +112,7 @@ const resolvers = {
 const schema = createSchema({ typeDefs, resolvers });
 const yoga = createYoga({ schema });
 
-export const handler = async (event: any, context: any) => {
+export const handler = async (event: LambdaEvent, context: LambdaContext) => {
   try {
     const path = event.rawPath || event.path || '/graphql';
     const method = event.requestContext?.http?.method || event.httpMethod || 'POST';

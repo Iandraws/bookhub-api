@@ -1,33 +1,34 @@
 import { docClient } from "../db/dynamoClient";
 import { v4 as uuid } from "uuid";
 import { ScanCommand, GetCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { Book, BookFilter, BookSort, BooksConnection, BookInput, BookUpdateInput, ScanParams } from '../types';
 
 const BOOKS_TABLE = process.env.BOOKS_TABLE || "Books";
 
 const getCurrentTimestamp = () => new Date().toISOString();
 
-export const listBooks = async (filter?: any, sort?: any, limit?: number, offset?: number) => {
+export const listBooks = async (filter?: BookFilter, sort?: BookSort, limit?: number, offset?: number): Promise<BooksConnection> => {
   try {
-    const scanParams: any = { TableName: BOOKS_TABLE };
+    const scanParams: ScanParams = { TableName: BOOKS_TABLE };
     
     const data = await docClient.send(new ScanCommand(scanParams));
     
-    let items = data.Items || [];
+    let items: Book[] = (data.Items as Book[]) || [];
     
     if (filter?.title) {
-      items = items.filter((item: any) => 
-        item.title.toLowerCase().includes(filter.title.toLowerCase())
+      items = items.filter((item: Book) => 
+        item.title.toLowerCase().includes(filter.title!.toLowerCase())
       );
     }
     
     if (filter?.authorId) {
-      items = items.filter((item: any) => 
-        item.authorIds && item.authorIds.includes(filter.authorId)
+      items = items.filter((item: Book) => 
+        item.authorIds && item.authorIds.includes(filter.authorId!)
       );
     }
     
     if (sort?.field && sort?.direction) {
-      items.sort((a: any, b: any) => {
+      items.sort((a: Book, b: Book) => {
         const aVal = a[sort.field];
         const bVal = b[sort.field];
         
@@ -58,32 +59,32 @@ export const listBooks = async (filter?: any, sort?: any, limit?: number, offset
   }
 };
 
-export const getBook = async (id: string) => {
+export const getBook = async (id: string): Promise<Book | null> => {
   const data = await docClient.send(new GetCommand({ TableName: BOOKS_TABLE, Key: { id } }));
-  return data.Item;
+  return (data.Item as Book) || null;
 };
 
-export const createBook = async (title: string, description: string, authorIds: string[]) => {
+export const createBook = async (title: string, description: string, authorIds: string[]): Promise<Book> => {
   const id = uuid();
   const now = getCurrentTimestamp();
-  const item = { id, title, description, authorIds, createdAt: now, updatedAt: now };
+  const item: Book = { id, title, description, authorIds, createdAt: now, updatedAt: now };
   await docClient.send(new PutCommand({ TableName: BOOKS_TABLE, Item: item }));
   return item;
 };
 
-export const createBooks = async (books: Array<{ title: string; description: string; authorIds: string[] }>) => {
+export const createBooks = async (books: BookInput[]): Promise<Book[]> => {
   const createdBooks = await Promise.all(
-    books.map(book => createBook(book.title, book.description, book.authorIds))
+    books.map(book => createBook(book.title, book.description || '', book.authorIds))
   );
   return createdBooks;
 };
 
-export const updateBook = async (id: string, input: { title?: string; description?: string; authorIds?: string[] }) => {
+export const updateBook = async (id: string, input: BookUpdateInput): Promise<Book | null> => {
   const existingBook = await getBook(id);
   if (!existingBook) return null;
   
   const now = getCurrentTimestamp();
-  const updatedItem = {
+  const updatedItem: Book = {
     ...existingBook,
     ...input,
     updatedAt: now
@@ -93,17 +94,17 @@ export const updateBook = async (id: string, input: { title?: string; descriptio
   return updatedItem;
 };
 
-export const deleteBook = async (id: string) => {
+export const deleteBook = async (id: string): Promise<boolean> => {
   await docClient.send(new DeleteCommand({ TableName: BOOKS_TABLE, Key: { id } }));
   return true;
 };
 
-export const deleteAllBooks = async () => {
+export const deleteAllBooks = async (): Promise<boolean> => {
   const data = await docClient.send(new ScanCommand({ TableName: BOOKS_TABLE }));
-  const items = data.Items || [];
+  const items: Book[] = (data.Items as Book[]) || [];
   
   await Promise.all(
-    items.map((item: any) => 
+    items.map((item: Book) => 
       docClient.send(new DeleteCommand({ TableName: BOOKS_TABLE, Key: { id: item.id } }))
     )
   );
@@ -111,12 +112,12 @@ export const deleteAllBooks = async () => {
   return true;
 };
 
-export const searchBooks = async (query: string) => {
+export const searchBooks = async (query: string): Promise<Book[]> => {
   const data = await docClient.send(new ScanCommand({ TableName: BOOKS_TABLE }));
-  const items = data.Items || [];
+  const items: Book[] = (data.Items as Book[]) || [];
   
   const searchQuery = query.toLowerCase();
-  return items.filter((item: any) => 
+  return items.filter((item: Book) => 
     item.title.toLowerCase().includes(searchQuery) ||
     (item.description && item.description.toLowerCase().includes(searchQuery))
   );
