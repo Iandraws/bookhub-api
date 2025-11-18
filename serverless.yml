@@ -62,7 +62,7 @@ build:
   esbuild: true
   bundle: true
   minify: false
-  sourcemap: true
+  sourcemap: false
   target: node20
   platform: node
   format: cjs
