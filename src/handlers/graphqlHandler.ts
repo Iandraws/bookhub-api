@@ -5,6 +5,14 @@ import * as authorService from '../services/authorService';
 import { docClient } from '../db/dynamoClient';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 
+// Valid API keys
+const VALID_API_KEYS = ['bookhub-demo-key-12345', 'bookhub-prod-key-67890'];
+
+const validateApiKey = (headers: any): boolean => {
+  const apiKey = headers['x-api-key'] || headers['X-Api-Key'];
+  return VALID_API_KEYS.includes(apiKey);
+};
+
 const resolvers = {
   Query: {
     health: () => "OK",
@@ -110,6 +118,20 @@ export const handler = async (event: any, context: any) => {
     const path = event.rawPath || event.path || '/graphql';
     const method = event.requestContext?.http?.method || event.httpMethod || 'POST';
     const headers = event.headers || {};
+    
+    // Validate API key
+    if (!validateApiKey(headers)) {
+      return {
+        statusCode: 401,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          errors: [{ 
+            message: 'Unauthorized: Missing or invalid API key. Please provide x-api-key header.',
+            extensions: { code: 'UNAUTHORIZED' } 
+          }],
+        }),
+      };
+    }
     
     let body: string | undefined = undefined;
     if (event.body) {
