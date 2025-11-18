@@ -138,7 +138,7 @@
           }
         },
         {
-          "name": "List Books - By Author",
+          "name": "List Books - By Author Name",
           "request": {
             "method": "POST",
             "header": [
@@ -150,7 +150,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "{\n  listBooks(filter: { authorId: \"author-1\" }, limit: 10) {\n    items {\n      id\n      title\n      description\n      authors {\n        id\n        name\n      }\n    }\n    total\n  }\n}"
+                "query": "{\n  listBooks(filter: { authorName: \"Rowling\" }, limit: 10) {\n    items {\n      id\n      title\n      description\n      authors {\n        id\n        name\n      }\n    }\n    total\n  }\n}"
               }
             },
             "url": {
@@ -167,7 +167,73 @@
                 "graphql"
               ]
             },
-            "description": "Find all books written by a specific author"
+            "description": "Filter books by author name using case-insensitive search"
+          }
+        },
+        {
+          "name": "List Books - By Description",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  listBooks(filter: { description: \"horror\" }, limit: 10) {\n    items {\n      id\n      title\n      description\n      authors {\n        id\n        name\n      }\n    }\n    total\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Filter books by description content using case-insensitive search"
+          }
+        },
+        {
+          "name": "List Books - Combined Filters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  listBooks(filter: { title: \"Harry\", authorName: \"Rowling\" }, limit: 10) {\n    items {\n      id\n      title\n      description\n      authors {\n        id\n        name\n      }\n    }\n    total\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
+              "protocol": "https",
+              "host": [
+                "ntajwaq5ga",
+                "execute-api",
+                "eu-central-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Filter books using multiple criteria - title and author name"
           }
         },
         {
