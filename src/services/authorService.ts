@@ -7,24 +7,34 @@ const AUTHORS_TABLE = process.env.AUTHORS_TABLE || "Authors";
 const getCurrentTimestamp = () => new Date().toISOString();
 
 export const listAuthors = async (filter?: any, limit?: number, offset?: number) => {
-  const data = await docClient.send(new ScanCommand({ TableName: AUTHORS_TABLE }));
-  
-  let items = data.Items || [];
-  
-  if (filter?.name) {
-    items = items.filter((item: any) =>
-      item.name.toLowerCase().includes(filter.name.toLowerCase())
-    );
+  try {
+    const data = await docClient.send(new ScanCommand({ TableName: AUTHORS_TABLE }));
+    
+    let items = data.Items || [];
+    
+    if (filter?.name) {
+      items = items.filter((item: any) =>
+        item.name.toLowerCase().includes(filter.name.toLowerCase())
+      );
+    }
+    
+    const total = items.length;
+    const pageLimit = limit ?? 10;
+    const pageOffset = offset ?? 0;
+    const start = Math.max(0, pageOffset);
+    const end = start + pageLimit;
+    
+    return {
+      items: items.slice(start, end),
+      total
+    };
+  } catch (error) {
+    console.error('Error listing authors:', error);
+    return {
+      items: [],
+      total: 0
+    };
   }
-  
-  const total = items.length;
-  const start = offset || 0;
-  const end = start + (limit || 10);
-  
-  return {
-    items: items.slice(start, end),
-    total
-  };
 };
 
 export const getAuthor = async (id: string) => {

@@ -7,43 +7,53 @@ const BOOKS_TABLE = process.env.BOOKS_TABLE || "Books";
 const getCurrentTimestamp = () => new Date().toISOString();
 
 export const listBooks = async (filter?: any, sort?: any, limit?: number, offset?: number) => {
-  const scanParams: any = { TableName: BOOKS_TABLE };
-  
-  const data = await docClient.send(new ScanCommand(scanParams));
-  
-  let items = data.Items || [];
-  
-  if (filter?.title) {
-    items = items.filter((item: any) => 
-      item.title.toLowerCase().includes(filter.title.toLowerCase())
-    );
+  try {
+    const scanParams: any = { TableName: BOOKS_TABLE };
+    
+    const data = await docClient.send(new ScanCommand(scanParams));
+    
+    let items = data.Items || [];
+    
+    if (filter?.title) {
+      items = items.filter((item: any) => 
+        item.title.toLowerCase().includes(filter.title.toLowerCase())
+      );
+    }
+    
+    if (filter?.authorId) {
+      items = items.filter((item: any) => item.authorId === filter.authorId);
+    }
+    
+    if (sort?.field && sort?.direction) {
+      items.sort((a: any, b: any) => {
+        const aVal = a[sort.field];
+        const bVal = b[sort.field];
+        
+        if (sort.direction === 'ASC') {
+          return aVal > bVal ? 1 : -1;
+        } else {
+          return aVal < bVal ? 1 : -1;
+        }
+      });
+    }
+    
+    const total = items.length;
+    const pageLimit = limit ?? 10;
+    const pageOffset = offset ?? 0;
+    const start = Math.max(0, pageOffset);
+    const end = start + pageLimit;
+    
+    return {
+      items: items.slice(start, end),
+      total
+    };
+  } catch (error) {
+    console.error('Error listing books:', error);
+    return {
+      items: [],
+      total: 0
+    };
   }
-  
-  if (filter?.authorId) {
-    items = items.filter((item: any) => item.authorId === filter.authorId);
-  }
-  
-  if (sort?.field && sort?.direction) {
-    items.sort((a: any, b: any) => {
-      const aVal = a[sort.field];
-      const bVal = b[sort.field];
-      
-      if (sort.direction === 'ASC') {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-  }
-  
-  const total = items.length;
-  const start = offset || 0;
-  const end = start + (limit || 10);
-  
-  return {
-    items: items.slice(start, end),
-    total
-  };
 };
 
 export const getBook = async (id: string) => {
