@@ -4,6 +4,26 @@
     "description": "Production-ready GraphQL API with many-to-many relationships, filtering, sorting, pagination, search, and batch operations on AWS Lambda with DynamoDB",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
   "item": [
     {
       "name": "System",
@@ -16,6 +36,11 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -668,6 +693,12 @@
       "key": "endpoint",
       "value": "https://ntajwaq5ga.execute-api.eu-central-1.amazonaws.com/graphql",
       "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "bookhub-demo-key-12345",
+      "type": "string",
+      "description": "API Key for authentication - use 'bookhub-demo-key-12345' or 'bookhub-prod-key-67890'"
     }
   ]
 }
