@@ -7,6 +7,7 @@ provider:
   environment:
     BOOKS_TABLE: ${self:service}-books-${sls:stage}
     AUTHORS_TABLE: ${self:service}-authors-${sls:stage}
+    API_KEY: ${env:API_KEY}
   iam:
     role:
       statements:
