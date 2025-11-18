@@ -3,7 +3,7 @@ export const typeDefs = `
     id: ID!
     title: String!
     description: String
-    author: Author
+    authors: [Author!]!
     createdAt: String
     updatedAt: String
   }
@@ -11,6 +11,7 @@ export const typeDefs = `
   type Author {
     id: ID!
     name: String!
+    books: [Book!]!
     createdAt: String
   }
 
@@ -46,13 +47,13 @@ export const typeDefs = `
   input CreateBookInput {
     title: String!
     description: String
-    authorId: ID!
+    authorIds: [ID!]!
   }
 
   input UpdateBookInput {
     title: String
     description: String
-    authorId: ID
+    authorIds: [ID!]
   }
 
   input CreateAuthorInput {

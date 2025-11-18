@@ -21,7 +21,9 @@ export const listBooks = async (filter?: any, sort?: any, limit?: number, offset
     }
     
     if (filter?.authorId) {
-      items = items.filter((item: any) => item.authorId === filter.authorId);
+      items = items.filter((item: any) => 
+        item.authorIds && item.authorIds.includes(filter.authorId)
+      );
     }
     
     if (sort?.field && sort?.direction) {
@@ -61,22 +63,22 @@ export const getBook = async (id: string) => {
   return data.Item;
 };
 
-export const createBook = async (title: string, description: string, authorId: string) => {
+export const createBook = async (title: string, description: string, authorIds: string[]) => {
   const id = uuid();
   const now = getCurrentTimestamp();
-  const item = { id, title, description, authorId, createdAt: now, updatedAt: now };
+  const item = { id, title, description, authorIds, createdAt: now, updatedAt: now };
   await docClient.send(new PutCommand({ TableName: BOOKS_TABLE, Item: item }));
   return item;
 };
 
-export const createBooks = async (books: Array<{ title: string; description: string; authorId: string }>) => {
+export const createBooks = async (books: Array<{ title: string; description: string; authorIds: string[] }>) => {
   const createdBooks = await Promise.all(
-    books.map(book => createBook(book.title, book.description, book.authorId))
+    books.map(book => createBook(book.title, book.description, book.authorIds))
   );
   return createdBooks;
 };
 
-export const updateBook = async (id: string, input: { title?: string; description?: string; authorId?: string }) => {
+export const updateBook = async (id: string, input: { title?: string; description?: string; authorIds?: string[] }) => {
   const existingBook = await getBook(id);
   if (!existingBook) return null;
   

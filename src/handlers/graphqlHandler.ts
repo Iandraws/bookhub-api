@@ -2,6 +2,8 @@ import { createYoga, createSchema } from 'graphql-yoga';
 import { typeDefs } from '../graphql/typeDefs';
 import * as bookService from '../services/bookService';
 import * as authorService from '../services/authorService';
+import { docClient } from '../db/dynamoClient';
+import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 const resolvers = {
   Query: {
@@ -29,20 +31,20 @@ const resolvers = {
   },
   
   Mutation: {
-    createBook: async (_: any, args: { input: { title: string; description?: string; authorId: string } }) => {
-      return await bookService.createBook(args.input.title, args.input.description || "", args.input.authorId);
+    createBook: async (_: any, args: { input: { title: string; description?: string; authorIds: string[] } }) => {
+      return await bookService.createBook(args.input.title, args.input.description || "", args.input.authorIds);
     },
     
-    createBooks: async (_: any, args: { inputs: Array<{ title: string; description?: string; authorId: string }> }) => {
+    createBooks: async (_: any, args: { inputs: Array<{ title: string; description?: string; authorIds: string[] }> }) => {
       const inputs = args.inputs.map(input => ({
         title: input.title,
         description: input.description || "",
-        authorId: input.authorId,
+        authorIds: input.authorIds,
       }));
       return await bookService.createBooks(inputs);
     },
     
-    updateBook: async (_: any, args: { id: string; input: { title?: string; description?: string; authorId?: string } }) => {
+    updateBook: async (_: any, args: { id: string; input: { title?: string; description?: string; authorIds?: string[] } }) => {
       return await bookService.updateBook(args.id, args.input);
     },
     
@@ -68,14 +70,33 @@ const resolvers = {
   },
   
   Book: {
-    author: async (book: any) => {
+    authors: async (book: any) => {
       try {
-        if (!book.authorId) return null;
-        const author = await authorService.getAuthor(book.authorId);
-        return author || null;
+        if (!book.authorIds || book.authorIds.length === 0) return [];
+        const authors = await Promise.all(
+          book.authorIds.map((id: string) => authorService.getAuthor(id))
+        );
+        return authors.filter((a: any) => a !== null);
       } catch (error) {
-        console.error('Error fetching author:', error);
-        return null;
+        console.error('Error fetching authors:', error);
+        return [];
+      }
+    },
+  },
+  
+  Author: {
+    books: async (author: any) => {
+      try {
+        const BOOKS_TABLE = process.env.BOOKS_TABLE || 'bookhub-api-books-dev';
+        const scanParams: any = { TableName: BOOKS_TABLE };
+        const data = await docClient.send(new ScanCommand(scanParams));
+        const allBooks = data.Items || [];
+        return allBooks.filter((book: any) => 
+          book.authorIds && book.authorIds.includes(author.id)
+        );
+      } catch (error) {
+        console.error('Error fetching books:', error);
+        return [];
       }
     },
   },
