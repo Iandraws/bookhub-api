@@ -483,7 +483,7 @@ NODE_ENV=development
 ## Build
 
 ```bash
-npx tsc --noEmit
+ npx serverless deploy
 ```
 
 ## Notes
