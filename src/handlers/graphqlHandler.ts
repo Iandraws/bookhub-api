@@ -68,6 +68,10 @@ const resolvers = {
     deleteAuthor: async (_: unknown, args: DeleteAuthorArgs) => {
       return await authorService.deleteAuthor(args.id);
     },
+    
+    deleteAllAuthors: async () => {
+      return await authorService.deleteAllAuthors();
+    },
   },
   
   Book: {

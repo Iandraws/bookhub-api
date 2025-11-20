@@ -84,5 +84,6 @@ export const typeDefs = `
     updateAuthor(id: ID!, input: UpdateAuthorInput!): Author
     deleteAuthor(id: ID!): Boolean!
     deleteAllBooks: Boolean!
+    deleteAllAuthors: Boolean!
   }
 `;

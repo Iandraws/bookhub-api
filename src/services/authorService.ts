@@ -74,3 +74,16 @@ export const deleteAuthor = async (id: string): Promise<boolean> => {
   await docClient.send(new DeleteCommand({ TableName: AUTHORS_TABLE, Key: { id } }));
   return true;
 };
+
+export const deleteAllAuthors = async (): Promise<boolean> => {
+  const data = await docClient.send(new ScanCommand({ TableName: AUTHORS_TABLE }));
+  const items: Author[] = (data.Items as Author[]) || [];
+  
+  await Promise.all(
+    items.map((item: Author) => 
+      docClient.send(new DeleteCommand({ TableName: AUTHORS_TABLE, Key: { id: item.id } }))
+    )
+  );
+  
+  return true;
+};
