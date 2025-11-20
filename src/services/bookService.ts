@@ -1,6 +1,7 @@
 import { docClient } from "../db/dynamoClient";
 import { v4 as uuid } from "uuid";
 import { ScanCommand, GetCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { BUSINESS_ERRORS, DB_ERRORS } from '../utils/errors';
 import { Book, BookFilter, BookSort, BooksConnection, BookInput, BookUpdateInput, ScanParams, Author } from '../types';
 
 const BOOKS_TABLE = process.env.BOOKS_TABLE || "Books";
@@ -85,20 +86,30 @@ export const getBook = async (id: string): Promise<Book | null> => {
 };
 
 export const createBook = async (title: string, description: string, authorIds: string[]): Promise<Book> => {
+  if (!title || title.trim().length === 0) {
+    throw BUSINESS_ERRORS.EMPTY_TITLE();
+  }
+
   const existingBooks = await searchBooks(title);
   const titleExists = existingBooks.some((book: Book) => 
     book.title.toLowerCase() === title.toLowerCase()
   );
   
   if (titleExists) {
-    throw new Error(`A book with the title "${title}" already exists`);
+    throw BUSINESS_ERRORS.DUPLICATE_BOOK_TITLE(title);
   }
 
   const id = uuid();
   const now = getCurrentTimestamp();
   const item: Book = { id, title, description, authorIds, createdAt: now, updatedAt: now };
-  await docClient.send(new PutCommand({ TableName: BOOKS_TABLE, Item: item }));
-  return item;
+  
+  try {
+    await docClient.send(new PutCommand({ TableName: BOOKS_TABLE, Item: item }));
+    return item;
+  } catch (error) {
+    console.error('Error creating book:', error);
+    throw DB_ERRORS.OPERATION_FAILED('create');
+  }
 };
 
 export const createBooks = async (books: BookInput[]): Promise<Book[]> => {

@@ -1,22 +1,16 @@
 import { createYoga, createSchema } from 'graphql-yoga';
-import { GraphQLError } from 'graphql';
 import { typeDefs } from '../graphql/typeDefs';
 import * as bookService from '../services/bookService';
 import * as authorService from '../services/authorService';
 import { docClient } from '../db/dynamoClient';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { validateApiKey } from '../utils/auth';
 import {
   Book, Author, GraphQLContext, LambdaEvent, LambdaContext, ScanParams,
   ListBooksArgs, GetBookArgs, ListAuthorsArgs, GetAuthorArgs, SearchBooksArgs,
   CreateBookArgs, CreateBooksArgs, UpdateBookArgs, DeleteBookArgs,
   CreateAuthorArgs, UpdateAuthorArgs, DeleteAuthorArgs
 } from '../types';
-
-const validateApiKey = (headers: Record<string, string>): boolean => {
-  const apiKey = headers['x-api-key'] || headers['X-Api-Key'];
-  const validApiKey = process.env.API_KEY;
-  return apiKey === validApiKey;
-};
 
 const resolvers = {
   Query: {
@@ -114,25 +108,8 @@ const schema = createSchema({ typeDefs, resolvers });
 const yoga = createYoga({ 
   schema,
   context: async ({ request }) => {
-    const apiKey = request.headers.get('x-api-key') || request.headers.get('X-Api-Key');
-    
-    if (!apiKey) {
-      throw new GraphQLError('Missing API key. Please provide x-api-key header.', {
-        extensions: {
-          code: 'UNAUTHENTICATED',
-          http: { status: 401 }
-        }
-      });
-    }
-    
-    if (apiKey !== process.env.API_KEY) {
-      throw new GraphQLError('Invalid API key provided.', {
-        extensions: {
-          code: 'UNAUTHENTICATED', 
-          http: { status: 401 }
-        }
-      });
-    }
+    // Validate API key using utility function
+    validateApiKey(request.headers);
     
     return {};
   }
