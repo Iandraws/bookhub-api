@@ -2,6 +2,7 @@ import { docClient } from "../db/dynamoClient";
 import { v4 as uuid } from "uuid";
 import { ScanCommand, GetCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { BUSINESS_ERRORS, DB_ERRORS } from '../utils/errors';
+import { Logger } from '../utils/logger';
 import { Book, BookFilter, BookSort, BooksConnection, BookInput, BookUpdateInput, ScanParams, Author } from '../types';
 
 const BOOKS_TABLE = process.env.BOOKS_TABLE || "Books";
@@ -72,7 +73,7 @@ export const listBooks = async (filter?: BookFilter, sort?: BookSort, limit?: nu
       total
     };
   } catch (error) {
-    console.error('Error listing books:', error);
+    Logger.error('Failed to list books', { operation: 'listBooks' }, error as Error);
     return {
       items: [],
       total: 0
@@ -107,7 +108,7 @@ export const createBook = async (title: string, description: string, authorIds: 
     await docClient.send(new PutCommand({ TableName: BOOKS_TABLE, Item: item }));
     return item;
   } catch (error) {
-    console.error('Error creating book:', error);
+    Logger.error('Failed to create book', { operation: 'createBook', title }, error as Error);
     throw DB_ERRORS.OPERATION_FAILED('create');
   }
 };
@@ -202,4 +203,18 @@ export const searchBooks = async (query: string): Promise<Book[]> => {
     item.title.toLowerCase().includes(searchQuery) ||
     (item.description && item.description.toLowerCase().includes(searchQuery))
   );
+};
+
+export const getBooksByAuthorId = async (authorId: string): Promise<Book[]> => {
+  try {
+    const data = await docClient.send(new ScanCommand({ TableName: BOOKS_TABLE }));
+    const items: Book[] = (data.Items as Book[]) || [];
+    
+    return items.filter((book: Book) => 
+      book.authorIds && book.authorIds.includes(authorId)
+    );
+  } catch (error) {
+    Logger.error('Failed to get books by author ID', { operation: 'getBooksByAuthorId', authorId }, error as Error);
+    return [];
+  }
 };

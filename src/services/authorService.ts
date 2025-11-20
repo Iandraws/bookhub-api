@@ -1,6 +1,7 @@
 import { docClient } from "../db/dynamoClient";
 import { v4 as uuid } from "uuid";
 import { ScanCommand, GetCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { Logger } from '../utils/logger';
 import { Author, AuthorFilter, AuthorsConnection, AuthorUpdateInput } from '../types';
 
 const AUTHORS_TABLE = process.env.AUTHORS_TABLE || "Authors";
@@ -30,7 +31,7 @@ export const listAuthors = async (filter?: AuthorFilter, limit?: number, offset?
       total
     };
   } catch (error) {
-    console.error('Error listing authors:', error);
+    Logger.error('Failed to list authors', { operation: 'listAuthors' }, error as Error);
     return {
       items: [],
       total: 0
@@ -43,7 +44,7 @@ export const getAuthor = async (id: string): Promise<Author | null> => {
     const data = await docClient.send(new GetCommand({ TableName: AUTHORS_TABLE, Key: { id } }));
     return (data.Item as Author) || null;
   } catch (error) {
-    console.error('Error getting author:', error);
+    Logger.error('Failed to get author', { operation: 'getAuthor', authorId: id }, error as Error);
     return null;
   }
 };

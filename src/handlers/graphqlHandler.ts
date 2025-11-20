@@ -2,11 +2,10 @@ import { createYoga, createSchema } from 'graphql-yoga';
 import { typeDefs } from '../graphql/typeDefs';
 import * as bookService from '../services/bookService';
 import * as authorService from '../services/authorService';
-import { docClient } from '../db/dynamoClient';
-import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { validateApiKey } from '../utils/auth';
+import { Logger } from '../utils/logger';
 import {
-  Book, Author, GraphQLContext, LambdaEvent, LambdaContext, ScanParams,
+  Book, Author, GraphQLContext, LambdaEvent, LambdaContext,
   ListBooksArgs, GetBookArgs, ListAuthorsArgs, GetAuthorArgs, SearchBooksArgs,
   CreateBookArgs, CreateBooksArgs, UpdateBookArgs, DeleteBookArgs,
   CreateAuthorArgs, UpdateAuthorArgs, DeleteAuthorArgs
@@ -80,7 +79,11 @@ const resolvers = {
         );
         return authors.filter((a: Author | null) => a !== null);
       } catch (error) {
-        console.error('Error fetching authors:', error);
+        Logger.error('Failed to fetch authors for book', { 
+          operation: 'Book.authors', 
+          bookId: book.id,
+          authorIds: book.authorIds 
+        }, error as Error);
         return [];
       }
     },
@@ -88,18 +91,7 @@ const resolvers = {
   
   Author: {
     books: async (author: Author) => {
-      try {
-        const BOOKS_TABLE = process.env.BOOKS_TABLE || 'bookhub-api-books-dev';
-        const scanParams: ScanParams = { TableName: BOOKS_TABLE };
-        const data = await docClient.send(new ScanCommand(scanParams));
-        const allBooks: Book[] = (data.Items as Book[]) || [];
-        return allBooks.filter((book: Book) => 
-          book.authorIds && book.authorIds.includes(author.id)
-        );
-      } catch (error) {
-        console.error('Error fetching books:', error);
-        return [];
-      }
+      return await bookService.getBooksByAuthorId(author.id);
     },
   },
 };
