@@ -2,7 +2,7 @@ service: bookhub-api
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   region: eu-central-1
   environment:
     BOOKS_TABLE: ${self:service}-books-${sls:stage}
@@ -63,6 +63,6 @@ build:
   bundle: true
   minify: false
   sourcemap: false
-  target: node20
+  target: node22
   platform: node
   format: cjs
