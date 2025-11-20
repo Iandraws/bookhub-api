@@ -1,13 +1,9 @@
-/**
- * API Key validation utility
- */
+
 
 import { AUTH_ERRORS } from './errors';
 
 export const validateApiKey = (headers: Record<string, string> | Headers): void => {
   let apiKey: string | null;
-
-  // Handle both Headers object (from fetch) and Record<string, string> (from Lambda)
   if (headers instanceof Headers) {
     apiKey = headers.get('x-api-key') || headers.get('X-Api-Key');
   } else {

@@ -40,15 +40,11 @@ export class InternalError extends APIError {
     super(message, 'INTERNAL_SERVER_ERROR', 500);
   }
 }
-
-// Specific API Key Errors
 export const AUTH_ERRORS = {
   MISSING_API_KEY: () => new AuthenticationError('Missing API key. Please provide x-api-key header.'),
   INVALID_API_KEY: () => new AuthenticationError('Invalid API key provided.'),
   UNAUTHORIZED: () => new AuthenticationError('Unauthorized access.')
 };
-
-// Book/Author specific errors
 export const BUSINESS_ERRORS = {
   BOOK_NOT_FOUND: (id: string) => new NotFoundError(`Book with ID "${id}" not found.`),
   AUTHOR_NOT_FOUND: (id: string) => new NotFoundError(`Author with ID "${id}" not found.`),
@@ -57,8 +53,6 @@ export const BUSINESS_ERRORS = {
   EMPTY_TITLE: () => new ValidationError('Book title cannot be empty.'),
   EMPTY_AUTHOR_NAME: () => new ValidationError('Author name cannot be empty.')
 };
-
-// Database errors
 export const DB_ERRORS = {
   CONNECTION_FAILED: () => new InternalError('Database connection failed.'),
   OPERATION_FAILED: (operation: string) => new InternalError(`Database ${operation} operation failed.`),

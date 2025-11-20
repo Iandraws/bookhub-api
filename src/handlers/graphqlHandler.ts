@@ -108,7 +108,6 @@ const schema = createSchema({ typeDefs, resolvers });
 const yoga = createYoga({ 
   schema,
   context: async ({ request }) => {
-    // Validate API key using utility function
     validateApiKey(request.headers);
     
     return {};
