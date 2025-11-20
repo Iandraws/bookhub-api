@@ -110,27 +110,24 @@ const resolvers = {
 };
 
 const schema = createSchema({ typeDefs, resolvers });
-const yoga = createYoga({ schema });
+const yoga = createYoga({ 
+  schema,
+  context: async ({ request }) => {
+    const apiKey = request.headers.get('x-api-key') || request.headers.get('X-Api-Key');
+    
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      throw new Error('Unauthorized: Missing or invalid API key. Please provide x-api-key header.');
+    }
+    
+    return {};
+  }
+});
 
 export const handler = async (event: LambdaEvent, context: LambdaContext) => {
   try {
     const path = event.rawPath || event.path || '/graphql';
     const method = event.requestContext?.http?.method || event.httpMethod || 'POST';
     const headers = event.headers || {};
-    
-    // Validate API key
-    if (!validateApiKey(headers)) {
-      return {
-        statusCode: 401,
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          errors: [{ 
-            message: 'Unauthorized: Missing or invalid API key. Please provide x-api-key header.',
-            extensions: { code: 'UNAUTHORIZED' } 
-          }],
-        }),
-      };
-    }
     
     let body: string | undefined = undefined;
     if (event.body) {
