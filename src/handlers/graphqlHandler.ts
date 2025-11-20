@@ -1,4 +1,5 @@
 import { createYoga, createSchema } from 'graphql-yoga';
+import { GraphQLError } from 'graphql';
 import { typeDefs } from '../graphql/typeDefs';
 import * as bookService from '../services/bookService';
 import * as authorService from '../services/authorService';
@@ -115,8 +116,22 @@ const yoga = createYoga({
   context: async ({ request }) => {
     const apiKey = request.headers.get('x-api-key') || request.headers.get('X-Api-Key');
     
-    if (!apiKey || apiKey !== process.env.API_KEY) {
-      throw new Error('Unauthorized: Missing or invalid API key. Please provide x-api-key header.');
+    if (!apiKey) {
+      throw new GraphQLError('Missing API key. Please provide x-api-key header.', {
+        extensions: {
+          code: 'UNAUTHENTICATED',
+          http: { status: 401 }
+        }
+      });
+    }
+    
+    if (apiKey !== process.env.API_KEY) {
+      throw new GraphQLError('Invalid API key provided.', {
+        extensions: {
+          code: 'UNAUTHENTICATED', 
+          http: { status: 401 }
+        }
+      });
     }
     
     return {};
