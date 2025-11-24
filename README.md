@@ -2,6 +2,13 @@
 
 GraphQL API for managing books and authors. Built with TypeScript and deployed on AWS Lambda with DynamoDB.
 
+## 📊 Presentation Materials
+
+Need to present this project? Check out these resources:
+- **[PRESENTATION.md](PRESENTATION.md)** - Comprehensive presentation guide in simple language (German & English)
+- **[PRESENTATION_QUICK_GUIDE.md](PRESENTATION_QUICK_GUIDE.md)** - Quick reference for 9-minute presentation
+- **[VISUAL_DIAGRAMS.md](VISUAL_DIAGRAMS.md)** - Visual aids and architecture diagrams
+
 ## Live Endpoint
 
 ```
